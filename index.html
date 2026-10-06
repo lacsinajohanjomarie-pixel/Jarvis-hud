@@ -87,7 +87,20 @@ async function sendToJarvis(){
 }
 function toggle(i,c){if(c){tasks.splice(i,1);save()}}
 function save(){localStorage.setItem("jarvisTasks",JSON.stringify(tasks));render()}
-taskInput.addEventListener("keydown",e=>{if(e.key==="Enter")addTask()});
+taskInput.addEventListener("keydown", async e => {
+  if (e.key !== "Enter") return;
+
+  const message = taskInput.value.trim();
+  if (!message) return;
+
+  taskInput.value = "";
+
+  addFeed(message);
+
+  const reply = await askJarvis(message);
+
+  addFeed(reply);
+});
 
 const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
 let recognition=null;
