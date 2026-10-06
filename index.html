@@ -143,7 +143,27 @@ function startListening(){
 }
 
 function tick(){clock.textContent=new Date().toLocaleTimeString([], {hour12:false})+"  //  PH";}
-setInterval(tick,1000);tick();render();
+setInterval(tick,1000);tick();render();const JARVIS_API_URL = "https://script.google.com/macros/s/AKfycbwJYzpcWBZviQPplS3fd-NKCXMhNfTTnzimDsz3QoZCA6Ku4b6Mm4XuFKIFA5Dk2_hysw/exec";
+  async function askJarvis(message) {
+  try {
+    const response = await fetch(JARVIS_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8"
+      },
+      body: JSON.stringify({
+        message: message
+      })
+    });
+
+    const data = await response.json();
+
+    return data.reply || "JARVIS received no response.";
+  } catch (error) {
+    console.error(error);
+    return "Connection to JARVIS failed.";
+  }
+  }
 </script>
 </body>
 </html>
