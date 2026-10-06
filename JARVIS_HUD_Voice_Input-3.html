@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>JARVIS HUD</title>
+<style>
+*{box-sizing:border-box} body{margin:0;background:#020609;color:#8eeaff;font-family:Arial,sans-serif;overflow:hidden}
+body:before{content:"";position:fixed;inset:0;background:linear-gradient(rgba(80,220,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(80,220,255,.035) 1px,transparent 1px);background-size:35px 35px;pointer-events:none}
+.hud{height:100vh;display:flex;align-items:center;justify-content:center;position:relative}
+.core{width:340px;height:340px;border:1px solid #28dfff;border-radius:50%;position:relative;display:flex;align-items:center;justify-content:center;box-shadow:0 0 25px #00cfff55,inset 0 0 35px #00cfff22}
+.core:before,.core:after{content:"";position:absolute;border:1px solid #28dfff;border-radius:50%}
+.core:before{inset:35px;border-style:dashed;animation:spin 12s linear infinite}
+.core:after{inset:75px;box-shadow:0 0 35px #00d9ff66}
+.arc{position:absolute;inset:-25px;border:2px solid transparent;border-top-color:#63eaff;border-bottom-color:#63eaff;border-radius:50%;animation:spin 8s linear infinite}
+.center{text-align:center;z-index:2}.pulse{font-size:42px;letter-spacing:5px;text-shadow:0 0 15px #20dcff}.online{font-size:11px;letter-spacing:4px;margin-top:10px}
+.panel{position:absolute;background:#031016bb;border:1px solid #20dfff88;box-shadow:0 0 18px #00cfff22;backdrop-filter:blur(6px);padding:16px}
+.left{left:4%;top:12%;width:210px}.right{right:4%;top:14%;width:260px}.bottom{left:4%;bottom:7%;width:340px}
+h3{font-size:12px;letter-spacing:3px;margin:0 0 12px;color:#fff}
+.stat{display:flex;justify-content:space-between;font-size:11px;margin:9px 0}.ok{color:#70ffbf}
+.tasks{display:flex;gap:9px;margin:9px 0;font-size:12px}.tasks input{accent-color:#28dfff}
+input[type=text]{width:100%;background:#06171d;border:1px solid #20dfff55;color:#baf5ff;padding:8px;margin-top:8px;outline:none}
+button{margin-top:8px;background:#06232c;color:#8eeaff;border:1px solid #20dfff88;padding:7px 12px;cursor:pointer}
+button:hover{background:#0b3a48}
+.voice{display:flex;gap:8px;align-items:center}.voice button{flex:1}
+#micBtn.listening{box-shadow:0 0 16px #20dfff;animation:listenPulse 1s ease-in-out infinite}
+#voiceStatus{font-size:10px;letter-spacing:2px;margin-top:8px;min-height:12px}
+.clock{position:absolute;top:4%;left:50%;transform:translateX(-50%);font-size:13px;letter-spacing:3px}
+.corner{position:absolute;font-size:9px;color:#48c9df66}.c1{left:2%;top:3%}.c2{right:2%;bottom:3%}
+@keyframes spin{to{transform:rotate(360deg)}} @keyframes listenPulse{50%{opacity:.55}}
+@media(max-width:700px){.core{width:260px;height:260px}.left{left:2%;top:10%;width:160px}.right{right:2%;top:auto;bottom:5%;width:210px}.bottom{display:none}}
+</style>
+</head>
+<body>
+<div class="hud">
+<div class="clock" id="clock"></div>
+<div class="corner c1">JARVIS // WEARABLE AI INTERFACE</div><div class="corner c2">PROTOTYPE BUILD 02 // VOICE</div>
+
+<section class="panel left"><h3>SYSTEM STATUS</h3>
+<div class="stat"><span>AI CORE</span><span class="ok">ONLINE</span></div>
+<div class="stat"><span>AUDIO LINK</span><span class="ok" id="audioStatus">READY</span></div>
+<div class="stat"><span>OPTICAL LINK</span><span class="ok">READY</span></div>
+<div class="stat"><span>POWER</span><span>100%</span></div>
+</section>
+
+<div class="core"><div class="arc"></div><div class="center"><div class="pulse">JARVIS</div><div class="online" id="coreStatus">SYSTEM ONLINE</div></div></div>
+
+<section class="panel right"><h3>TASKS</h3><div id="taskList"></div>
+<input id="taskInput" type="text" placeholder="Add a task..."><button onclick="addTask()">ADD</button>
+<div class="voice">
+<button id="micBtn" onclick="startListening()">🎤 LISTEN</button>
+</div>
+<div id="voiceStatus"></div>
+</section>
+
+<section class="panel bottom"><h3>ASSISTANT FEED</h3>
+<div id="feed" style="font-size:11px;line-height:1.6">Awaiting command...<br><span class="ok">All primary systems nominal.</span></div>
+</section>
+</div>
+<script>
+const tasks=JSON.parse(localStorage.getItem("jarvisTasks")||'["Build glasses prototype","Test audio input","Design HUD"]');
+
+function render(){
+  taskList.innerHTML="";
+  tasks.forEach((t,i)=>{
+    let r=document.createElement("div");
+    r.className="tasks";
+    r.innerHTML=`<input type="checkbox" onchange="toggle(${i},this.checked)"><span>${t}</span>`;
+    taskList.appendChild(r);
+  });
+}
+
+function addTask(){
+  let v=taskInput.value.trim();
+  if(v){tasks.push(v);taskInput.value="";save()}
+}
+
+function toggle(i,c){if(c){tasks.splice(i,1);save()}}
+function save(){localStorage.setItem("jarvisTasks",JSON.stringify(tasks));render()}
+taskInput.addEventListener("keydown",e=>{if(e.key==="Enter")addTask()});
+
+const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+let recognition=null;
+let listening=false;
+
+function setVoiceStatus(message,active=false){
+  voiceStatus.textContent=message;
+  micBtn.classList.toggle("listening",active);
+  audioStatus.textContent=active?"LISTENING":"READY";
+  coreStatus.textContent=active?"LISTENING...":"SYSTEM ONLINE";
+}
+
+function addFeed(text){
+  feed.innerHTML=`<span style="color:#fff">YOU:</span> ${text}<br><span class="ok">Voice input received.</span>`;
+}
+
+function startListening(){
+  if(!SpeechRecognition){
+    setVoiceStatus("VOICE INPUT NOT SUPPORTED");
+    addFeed("Your browser does not support speech recognition.");
+    return;
+  }
+
+  if(listening){
+    recognition.stop();
+    return;
+  }
+
+  recognition=new SpeechRecognition();
+  recognition.lang="en-US";
+  recognition.interimResults=false;
+  recognition.continuous=false;
+
+  recognition.onstart=()=>{
+    listening=true;
+    setVoiceStatus("LISTENING...",true);
+  };
+
+  recognition.onresult=(event)=>{
+    const transcript=event.results[0][0].transcript.trim();
+    taskInput.value=transcript;
+    addFeed(transcript);
+    setVoiceStatus("COMMAND RECEIVED");
+  };
+
+  recognition.onerror=(event)=>{
+    listening=false;
+    let message="VOICE ERROR";
+    if(event.error==="not-allowed") message="MICROPHONE PERMISSION DENIED";
+    if(event.error==="no-speech") message="NO SPEECH DETECTED";
+    setVoiceStatus(message);
+    audioStatus.textContent="READY";
+    coreStatus.textContent="SYSTEM ONLINE";
+  };
+
+  recognition.onend=()=>{
+    listening=false;
+    if(voiceStatus.textContent==="LISTENING...") setVoiceStatus("READY");
+  };
+
+  try{recognition.start()}
+  catch(e){setVoiceStatus("VOICE START FAILED")}
+}
+
+function tick(){clock.textContent=new Date().toLocaleTimeString([], {hour12:false})+"  //  PH";}
+setInterval(tick,1000);tick();render();
+</script>
+</body>
+</html>
