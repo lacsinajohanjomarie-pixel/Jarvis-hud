@@ -125,6 +125,7 @@ header {
 .message {
   margin-bottom: 12px;
   line-height: 1.5;
+  word-wrap: break-word;
 }
 
 .user {
@@ -156,6 +157,11 @@ input {
   outline: none;
 }
 
+input:focus {
+  border-color: #00ffff;
+  box-shadow: 0 0 10px rgba(0,255,255,.2);
+}
+
 button {
   background: transparent;
   border: 1px solid #00ffff;
@@ -169,6 +175,10 @@ button {
 button:hover {
   background: rgba(0,255,255,.12);
   box-shadow: 0 0 12px rgba(0,255,255,.3);
+}
+
+button:active {
+  transform: scale(.97);
 }
 
 .buttons {
@@ -202,6 +212,10 @@ button:hover {
   flex: 0;
 }
 
+.error {
+  color: #ff5555;
+}
+
 @media (max-width: 750px) {
   .grid {
     grid-template-columns: 1fr;
@@ -215,6 +229,11 @@ button:hover {
 
   .command-row {
     flex-direction: column;
+  }
+
+  .core {
+    width: 140px;
+    height: 140px;
   }
 }
 </style>
@@ -252,7 +271,12 @@ button:hover {
 <h2>TASK SYSTEM</h2>
 
 <div class="task-row">
-<input id="taskInput" type="text" placeholder="Enter task...">
+<input
+  id="taskInput"
+  type="text"
+  placeholder="Enter task..."
+  onkeydown="handleTaskEnter(event)"
+>
 <button onclick="addTask()">ADD</button>
 </div>
 
@@ -273,10 +297,10 @@ button:hover {
 <div class="command-row">
 
 <input
-id="commandInput"
-type="text"
-placeholder="Speak or type a command..."
-onkeydown="handleEnter(event)"
+  id="commandInput"
+  type="text"
+  placeholder="Speak or type a command..."
+  onkeydown="handleEnter(event)"
 >
 
 <button onclick="sendCommand()">ASK JARVIS</button>
@@ -298,18 +322,19 @@ onkeydown="handleEnter(event)"
 </div>
 </div>
 
-
 <script>
 
 /* =========================================================
-   JARVIS BACKEND
+   JARVIS GOOGLE APPS SCRIPT BACKEND
    ========================================================= */
 
 const JARVIS_API_URL =
 "https://script.google.com/macros/s/AKfycbwh0NSaJJaqtTzOpsDWGOV1hevaQTf8hSRfYTohgKfn_Fah3L79ITD5T4mAn0r3vaHo3A/exec";
 
 
-/* CLOCK */
+/* =========================================================
+   CLOCK
+   ========================================================= */
 
 function updateClock() {
 
@@ -331,25 +356,23 @@ setInterval(updateClock, 1000);
 updateClock();
 
 
-/* FEED */
+/* =========================================================
+   FEED
+   ========================================================= */
 
 function addMessage(text, type) {
 
-  const feed =
-    document.getElementById("feed");
+  const feed = document.getElementById("feed");
 
-  const message =
-    document.createElement("div");
+  const message = document.createElement("div");
 
-  message.className =
-    "message " + type;
+  message.className = "message " + type;
 
   message.textContent = text;
 
   feed.appendChild(message);
 
-  feed.scrollTop =
-    feed.scrollHeight;
+  feed.scrollTop = feed.scrollHeight;
 }
 
 
@@ -364,7 +387,9 @@ function clearFeed() {
 }
 
 
-/* AI REQUEST */
+/* =========================================================
+   JARVIS AI REQUEST
+   ========================================================= */
 
 async function askJarvis(message) {
 
@@ -387,6 +412,7 @@ async function askJarvis(message) {
     );
 
     if (!response.ok) {
+
       throw new Error(
         "HTTP " + response.status
       );
@@ -395,8 +421,15 @@ async function askJarvis(message) {
     const data =
       await response.json();
 
-    return data.reply ||
-      "JARVIS received no response.";
+    if (data.reply) {
+      return data.reply;
+    }
+
+    if (data.response) {
+      return data.response;
+    }
+
+    return "JARVIS received no response.";
 
   } catch (error) {
 
@@ -405,19 +438,19 @@ async function askJarvis(message) {
       error
     );
 
-    return "Connection to JARVIS failed.";
+    return "Connection to JARVIS failed. Check the backend deployment.";
   }
 }
 
 
-/* SEND COMMAND */
+/* =========================================================
+   SEND COMMAND
+   ========================================================= */
 
 async function sendCommand() {
 
   const input =
-    document.getElementById(
-      "commandInput"
-    );
+    document.getElementById("commandInput");
 
   const message =
     input.value.trim();
@@ -439,6 +472,21 @@ async function sendCommand() {
   const reply =
     await askJarvis(message);
 
+  const processingMessages =
+    document.querySelectorAll(".message.system");
+
+  if (processingMessages.length > 0) {
+
+    const last =
+      processingMessages[
+        processingMessages.length - 1
+      ];
+
+    if (last.textContent === "Processing...") {
+      last.remove();
+    }
+  }
+
   addMessage(
     "JARVIS: " + reply,
     "jarvis"
@@ -448,24 +496,89 @@ async function sendCommand() {
 }
 
 
-/* ENTER */
+/* =========================================================
+   ENTER KEY
+   ========================================================= */
 
 function handleEnter(event) {
 
   if (event.key === "Enter") {
+
+    event.preventDefault();
+
     sendCommand();
   }
 }
 
 
-/* VOICE OUTPUT */
+/* =========================================================
+   VOICE OUTPUT
+   ========================================================= */
+
+function getJarvisVoice() {
+
+  if (!("speechSynthesis" in window)) {
+    return null;
+  }
+
+  const voices =
+    window.speechSynthesis.getVoices();
+
+  if (!voices.length) {
+    return null;
+  }
+
+  /*
+   Try to find a deeper/male English voice.
+   Available voices depend on the device/browser.
+  */
+
+  const preferredNames = [
+    "Daniel",
+    "George",
+    "Arthur",
+    "Alex",
+    "Ryan",
+    "Google UK English Male",
+    "Microsoft George",
+    "Microsoft Ryan"
+  ];
+
+  for (const name of preferredNames) {
+
+    const found =
+      voices.find(v =>
+        v.name.toLowerCase().includes(
+          name.toLowerCase()
+        )
+      );
+
+    if (found) {
+      return found;
+    }
+  }
+
+  return (
+    voices.find(v =>
+      /^en-GB/i.test(v.lang)
+    ) ||
+    voices.find(v =>
+      /^en-US/i.test(v.lang)
+    ) ||
+    voices.find(v =>
+      /^en/i.test(v.lang)
+    ) ||
+    null
+  );
+}
+
 
 function speakJarvis(text) {
 
   if (!("speechSynthesis" in window)) {
 
     addMessage(
-      "Voice output is not supported.",
+      "Voice output is not supported on this device.",
       "system"
     );
 
@@ -477,9 +590,18 @@ function speakJarvis(text) {
   const speech =
     new SpeechSynthesisUtterance(text);
 
-  speech.lang = "en-US";
-  speech.rate = 1;
-  speech.pitch = 0.9;
+  const voice =
+    getJarvisVoice();
+
+  if (voice) {
+    speech.voice = voice;
+    speech.lang = voice.lang;
+  } else {
+    speech.lang = "en-US";
+  }
+
+  speech.rate = 0.9;
+  speech.pitch = 0.75;
   speech.volume = 1;
 
   window.speechSynthesis.speak(speech);
@@ -489,12 +611,29 @@ function speakJarvis(text) {
 function stopSpeaking() {
 
   if ("speechSynthesis" in window) {
+
     window.speechSynthesis.cancel();
   }
 }
 
 
-/* VOICE INPUT */
+/*
+ Some mobile browsers load voices after the page starts.
+*/
+
+if ("speechSynthesis" in window) {
+
+  window.speechSynthesis.onvoiceschanged =
+    function() {
+
+      window.speechSynthesis.getVoices();
+    };
+}
+
+
+/* =========================================================
+   VOICE INPUT
+   ========================================================= */
 
 const SpeechRecognition =
   window.SpeechRecognition ||
@@ -508,37 +647,53 @@ if (SpeechRecognition) {
     new SpeechRecognition();
 
   recognition.lang = "en-US";
+
   recognition.interimResults = false;
+
   recognition.continuous = false;
 
-  recognition.onstart = function() {
+  recognition.onstart =
+    function() {
 
-    addMessage(
-      "Listening...",
-      "system"
-    );
-  };
+      addMessage(
+        "Listening...",
+        "system"
+      );
+    };
 
-  recognition.onresult = function(event) {
 
-    const transcript =
-      event.results[0][0].transcript;
+  recognition.onresult =
+    function(event) {
 
-    document.getElementById(
-      "commandInput"
-    ).value = transcript;
+      const transcript =
+        event.results[0][0].transcript;
 
-    sendCommand();
-  };
+      document.getElementById(
+        "commandInput"
+      ).value = transcript;
 
-  recognition.onerror = function(event) {
+      sendCommand();
+    };
 
-    addMessage(
-      "Voice input error: " +
-      event.error,
-      "system"
-    );
-  };
+
+  recognition.onerror =
+    function(event) {
+
+      addMessage(
+        "Voice input error: " +
+        event.error,
+        "system"
+      );
+    };
+
+
+  recognition.onend =
+    function() {
+
+      console.log(
+        "Voice recognition stopped."
+      );
+    };
 }
 
 
@@ -547,7 +702,7 @@ function startListening() {
   if (!recognition) {
 
     addMessage(
-      "Voice recognition is not supported.",
+      "Voice recognition is not supported by this browser. Try Chrome.",
       "system"
     );
 
@@ -555,8 +710,11 @@ function startListening() {
   }
 
   try {
+
     recognition.start();
+
   } catch (error) {
+
     console.log(
       "Recognition already active."
     );
@@ -564,22 +722,47 @@ function startListening() {
 }
 
 
-/* TASK SYSTEM */
+/* =========================================================
+   TASK SYSTEM
+   ========================================================= */
 
-let tasks =
-  JSON.parse(
-    localStorage.getItem(
-      "jarvisTasks"
-    ) || "[]"
-  );
+let tasks = [];
+
+try {
+
+  tasks =
+    JSON.parse(
+      localStorage.getItem(
+        "jarvisTasks"
+      ) || "[]"
+    );
+
+  if (!Array.isArray(tasks)) {
+    tasks = [];
+  }
+
+} catch (error) {
+
+  tasks = [];
+}
 
 
 function saveTasks() {
 
-  localStorage.setItem(
-    "jarvisTasks",
-    JSON.stringify(tasks)
-  );
+  try {
+
+    localStorage.setItem(
+      "jarvisTasks",
+      JSON.stringify(tasks)
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Could not save tasks:",
+      error
+    );
+  }
 }
 
 
@@ -600,12 +783,15 @@ function renderTasks() {
 
       row.className = "task";
 
+
       const checkbox =
         document.createElement("input");
 
       checkbox.type = "checkbox";
+
       checkbox.checked =
         task.completed;
+
 
       checkbox.onchange =
         function() {
@@ -614,14 +800,17 @@ function renderTasks() {
             checkbox.checked;
 
           saveTasks();
+
           renderTasks();
         };
+
 
       const text =
         document.createElement("span");
 
       text.textContent =
         task.text;
+
 
       if (task.completed) {
 
@@ -632,7 +821,9 @@ function renderTasks() {
           "0.5";
       }
 
+
       row.appendChild(checkbox);
+
       row.appendChild(text);
 
       list.appendChild(row);
@@ -659,13 +850,32 @@ function addTask() {
   });
 
   saveTasks();
+
   renderTasks();
 
   input.value = "";
+
+  addMessage(
+    "Task added: " + text,
+    "system"
+  );
 }
 
 
-/* STARTUP */
+function handleTaskEnter(event) {
+
+  if (event.key === "Enter") {
+
+    event.preventDefault();
+
+    addTask();
+  }
+}
+
+
+/* =========================================================
+   STARTUP
+   ========================================================= */
 
 renderTasks();
 
@@ -674,40 +884,7 @@ addMessage(
   "system"
 );
 
-</function speakJarvis(text) {
-  if (!("speechSynthesis" in window)) return;
-
-  window.speechSynthesis.cancel();
-
-  const voices = window.speechSynthesis.getVoices();
-
-  // Prefer a male English voice
-  const preferred = voices.find(v =>
-    /male|daniel|george|arthur|ryan|alex/i.test(v.name) &&
-    /^en(-|_)/i.test(v.lang)
-  );
-
-  const voice = preferred || voices.find(v =>
-    /^en(-|_)/i.test(v.lang)
-  );
-
-  const speech = new SpeechSynthesisUtterance(text);
-
-  if (voice) {
-    speech.voice = voice;
-  }
-
-  speech.lang = "en-GB";
-  speech.rate = 0.9;
-  speech.pitch = 0.75;
-  speech.volume = 1;
-
-  window.speechSynthesis.speak(speech);
-}
-
-window.speechSynthesis.onvoiceschanged = function() {
-  window.speechSynthesis.getVoices();
-}; >
+</script>
 
 </body>
 </html>
