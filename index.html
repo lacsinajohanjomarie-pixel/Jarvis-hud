@@ -74,7 +74,17 @@ function addTask(){
   let v=taskInput.value.trim();
   if(v){tasks.push(v);taskInput.value="";save()}
 }
+async function sendToJarvis(){
+  let message = taskInput.value.trim();
 
+  if(!message) return;
+
+  taskInput.value = "";
+
+  const reply = await askJarvis(message);
+
+  console.log("JARVIS:", reply);
+}
 function toggle(i,c){if(c){tasks.splice(i,1);save()}}
 function save(){localStorage.setItem("jarvisTasks",JSON.stringify(tasks));render()}
 taskInput.addEventListener("keydown",e=>{if(e.key==="Enter")addTask()});
