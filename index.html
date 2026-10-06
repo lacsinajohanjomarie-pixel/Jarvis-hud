@@ -175,6 +175,7 @@ button:hover {
   display: flex;
   gap: 8px;
   margin-top: 10px;
+  flex-wrap: wrap;
 }
 
 .task-row {
@@ -215,10 +216,6 @@ button:hover {
   .command-row {
     flex-direction: column;
   }
-
-  .buttons {
-    flex-wrap: wrap;
-  }
 }
 </style>
 </head>
@@ -234,88 +231,67 @@ button:hover {
 
 <div class="grid">
 
-<!-- LEFT PANEL -->
 <div>
 
-  <div class="panel">
-    <h2>AI CORE</h2>
+<div class="panel">
+<h2>AI CORE</h2>
 
-    <div class="core"></div>
+<div class="core"></div>
 
-    <div class="status">
-      <div>AI CORE: <span class="online">ONLINE</span></div>
-      <div>AUDIO LINK: <span class="online">READY</span></div>
-      <div>OPTICAL LINK: <span class="online">READY</span></div>
-      <div>POWER: <span class="online">100%</span></div>
-    </div>
-  </div>
+<div class="status">
+<div>AI CORE: <span class="online">ONLINE</span></div>
+<div>AUDIO LINK: <span class="online">READY</span></div>
+<div>OPTICAL LINK: <span class="online">READY</span></div>
+<div>POWER: <span class="online">100%</span></div>
+</div>
+</div>
 
-  <br>
+<br>
 
-  <div class="panel">
-    <h2>TASK SYSTEM</h2>
+<div class="panel">
+<h2>TASK SYSTEM</h2>
 
-    <div class="task-row">
-      <input
-        id="taskInput"
-        type="text"
-        placeholder="Enter task..."
-      >
+<div class="task-row">
+<input id="taskInput" type="text" placeholder="Enter task...">
+<button onclick="addTask()">ADD</button>
+</div>
 
-      <button onclick="addTask()">ADD</button>
-    </div>
-
-    <div id="taskList" class="task-list"></div>
-  </div>
+<div id="taskList" class="task-list"></div>
+</div>
 
 </div>
 
-
-<!-- RIGHT PANEL -->
 <div class="panel">
 
-  <h2>JARVIS ASSISTANT</h2>
+<h2>JARVIS ASSISTANT</h2>
 
-  <div id="feed" class="feed">
-    <div class="message system">
-      Awaiting command...
-    </div>
+<div id="feed" class="feed">
+<div class="message system">Awaiting command...</div>
+<div class="message system">All primary systems nominal.</div>
+</div>
 
-    <div class="message system">
-      All primary systems nominal.
-    </div>
-  </div>
+<div class="command-row">
 
-  <div class="command-row">
+<input
+id="commandInput"
+type="text"
+placeholder="Speak or type a command..."
+onkeydown="handleEnter(event)"
+>
 
-    <input
-      id="commandInput"
-      type="text"
-      placeholder="Speak or type a command..."
-      onkeydown="handleEnter(event)"
-    >
+<button onclick="sendCommand()">ASK JARVIS</button>
 
-    <button onclick="sendCommand()">
-      ASK JARVIS
-    </button>
+</div>
 
-  </div>
+<div class="buttons">
 
-  <div class="buttons">
+<button onclick="startListening()">🎙 LISTEN</button>
 
-    <button onclick="startListening()">
-      🎙 LISTEN
-    </button>
+<button onclick="clearFeed()">CLEAR FEED</button>
 
-    <button onclick="clearFeed()">
-      CLEAR FEED
-    </button>
+<button onclick="stopSpeaking()">STOP VOICE</button>
 
-    <button onclick="stopSpeaking()">
-      STOP VOICE
-    </button>
-
-  </div>
+</div>
 
 </div>
 
@@ -333,9 +309,7 @@ const JARVIS_API_URL =
 "https://script.google.com/macros/s/AKfycbwh0NSaJJaqtTzOpsDWGOV1hevaQTf8hSRfYTohgKfn_Fah3L79ITD5T4mAn0r3vaHo3A/exec";
 
 
-/* =========================================================
-   CLOCK
-   ========================================================= */
+/* CLOCK */
 
 function updateClock() {
 
@@ -354,27 +328,28 @@ function updateClock() {
 }
 
 setInterval(updateClock, 1000);
-
 updateClock();
 
 
-/* =========================================================
-   FEED
-   ========================================================= */
+/* FEED */
 
 function addMessage(text, type) {
 
-  const feed = document.getElementById("feed");
+  const feed =
+    document.getElementById("feed");
 
-  const message = document.createElement("div");
+  const message =
+    document.createElement("div");
 
-  message.className = "message " + type;
+  message.className =
+    "message " + type;
 
   message.textContent = text;
 
   feed.appendChild(message);
 
-  feed.scrollTop = feed.scrollHeight;
+  feed.scrollTop =
+    feed.scrollHeight;
 }
 
 
@@ -389,18 +364,11 @@ function clearFeed() {
 }
 
 
-/* =========================================================
-   JARVIS AI REQUEST
-   ========================================================= */
+/* AI REQUEST */
 
 async function askJarvis(message) {
 
   try {
-
-    addMessage(
-      "Processing...",
-      "system"
-    );
 
     const response = await fetch(
       JARVIS_API_URL,
@@ -419,13 +387,13 @@ async function askJarvis(message) {
     );
 
     if (!response.ok) {
-
       throw new Error(
         "HTTP " + response.status
       );
     }
 
-    const data = await response.json();
+    const data =
+      await response.json();
 
     return data.reply ||
       "JARVIS received no response.";
@@ -442,27 +410,30 @@ async function askJarvis(message) {
 }
 
 
-/* =========================================================
-   SEND COMMAND
-   ========================================================= */
+/* SEND COMMAND */
 
 async function sendCommand() {
 
   const input =
-    document.getElementById("commandInput");
+    document.getElementById(
+      "commandInput"
+    );
 
   const message =
     input.value.trim();
 
-  if (!message) {
-    return;
-  }
+  if (!message) return;
 
   input.value = "";
 
   addMessage(
     "You: " + message,
     "user"
+  );
+
+  addMessage(
+    "Processing...",
+    "system"
   );
 
   const reply =
@@ -477,9 +448,7 @@ async function sendCommand() {
 }
 
 
-/* =========================================================
-   ENTER KEY
-   ========================================================= */
+/* ENTER */
 
 function handleEnter(event) {
 
@@ -489,16 +458,14 @@ function handleEnter(event) {
 }
 
 
-/* =========================================================
-   JARVIS VOICE OUTPUT
-   ========================================================= */
+/* VOICE OUTPUT */
 
 function speakJarvis(text) {
 
   if (!("speechSynthesis" in window)) {
 
     addMessage(
-      "Voice output is not supported on this browser.",
+      "Voice output is not supported.",
       "system"
     );
 
@@ -511,32 +478,23 @@ function speakJarvis(text) {
     new SpeechSynthesisUtterance(text);
 
   speech.lang = "en-US";
-
   speech.rate = 1;
-
   speech.pitch = 0.9;
-
   speech.volume = 1;
 
-  window.speechSynthesis.speak(
-    speech
-  );
+  window.speechSynthesis.speak(speech);
 }
 
 
 function stopSpeaking() {
 
   if ("speechSynthesis" in window) {
-
     window.speechSynthesis.cancel();
-
   }
 }
 
 
-/* =========================================================
-   VOICE INPUT
-   ========================================================= */
+/* VOICE INPUT */
 
 const SpeechRecognition =
   window.SpeechRecognition ||
@@ -550,9 +508,7 @@ if (SpeechRecognition) {
     new SpeechRecognition();
 
   recognition.lang = "en-US";
-
   recognition.interimResults = false;
-
   recognition.continuous = false;
 
   recognition.onstart = function() {
@@ -561,7 +517,6 @@ if (SpeechRecognition) {
       "Listening...",
       "system"
     );
-
   };
 
   recognition.onresult = function(event) {
@@ -574,7 +529,6 @@ if (SpeechRecognition) {
     ).value = transcript;
 
     sendCommand();
-
   };
 
   recognition.onerror = function(event) {
@@ -584,17 +538,7 @@ if (SpeechRecognition) {
       event.error,
       "system"
     );
-
   };
-
-  recognition.onend = function() {
-
-    console.log(
-      "Voice recognition ended."
-    );
-
-  };
-
 }
 
 
@@ -603,7 +547,7 @@ function startListening() {
   if (!recognition) {
 
     addMessage(
-      "Voice recognition is not supported by this browser.",
+      "Voice recognition is not supported.",
       "system"
     );
 
@@ -611,22 +555,16 @@ function startListening() {
   }
 
   try {
-
     recognition.start();
-
   } catch (error) {
-
     console.log(
       "Recognition already active."
     );
-
   }
 }
 
 
-/* =========================================================
-   TASK SYSTEM
-   ========================================================= */
+/* TASK SYSTEM */
 
 let tasks =
   JSON.parse(
@@ -658,19 +596,14 @@ function renderTasks() {
     function(task, index) {
 
       const row =
-        document.createElement(
-          "div"
-        );
+        document.createElement("div");
 
       row.className = "task";
 
       const checkbox =
-        document.createElement(
-          "input"
-        );
+        document.createElement("input");
 
       checkbox.type = "checkbox";
-
       checkbox.checked =
         task.completed;
 
@@ -681,15 +614,11 @@ function renderTasks() {
             checkbox.checked;
 
           saveTasks();
-
           renderTasks();
-
         };
 
       const text =
-        document.createElement(
-          "span"
-        );
+        document.createElement("span");
 
       text.textContent =
         task.text;
@@ -703,18 +632,10 @@ function renderTasks() {
           "0.5";
       }
 
-      row.appendChild(
-        checkbox
-      );
+      row.appendChild(checkbox);
+      row.appendChild(text);
 
-      row.appendChild(
-        text
-      );
-
-      list.appendChild(
-        row
-      );
-
+      list.appendChild(row);
     }
   );
 }
@@ -730,30 +651,21 @@ function addTask() {
   const text =
     input.value.trim();
 
-  if (!text) {
-    return;
-  }
+  if (!text) return;
 
   tasks.push({
-
     text: text,
-
     completed: false
-
   });
 
   saveTasks();
-
   renderTasks();
 
   input.value = "";
-
 }
 
 
-/* =========================================================
-   STARTUP
-   ========================================================= */
+/* STARTUP */
 
 renderTasks();
 
