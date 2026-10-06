@@ -674,7 +674,40 @@ addMessage(
   "system"
 );
 
-</script>
+</function speakJarvis(text) {
+  if (!("speechSynthesis" in window)) return;
+
+  window.speechSynthesis.cancel();
+
+  const voices = window.speechSynthesis.getVoices();
+
+  // Prefer a male English voice
+  const preferred = voices.find(v =>
+    /male|daniel|george|arthur|ryan|alex/i.test(v.name) &&
+    /^en(-|_)/i.test(v.lang)
+  );
+
+  const voice = preferred || voices.find(v =>
+    /^en(-|_)/i.test(v.lang)
+  );
+
+  const speech = new SpeechSynthesisUtterance(text);
+
+  if (voice) {
+    speech.voice = voice;
+  }
+
+  speech.lang = "en-GB";
+  speech.rate = 0.9;
+  speech.pitch = 0.75;
+  speech.volume = 1;
+
+  window.speechSynthesis.speak(speech);
+}
+
+window.speechSynthesis.onvoiceschanged = function() {
+  window.speechSynthesis.getVoices();
+}; >
 
 </body>
 </html>
