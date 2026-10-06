@@ -2,251 +2,747 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>JARVIS HUD</title>
+
 <style>
-*{box-sizing:border-box} body{margin:0;background:#020609;color:#8eeaff;font-family:Arial,sans-serif;overflow:hidden}
-body:before{content:"";position:fixed;inset:0;background:linear-gradient(rgba(80,220,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(80,220,255,.035) 1px,transparent 1px);background-size:35px 35px;pointer-events:none}
-.hud{height:100vh;display:flex;align-items:center;justify-content:center;position:relative}
-.core{width:340px;height:340px;border:1px solid #28dfff;border-radius:50%;position:relative;display:flex;align-items:center;justify-content:center;box-shadow:0 0 25px #00cfff55,inset 0 0 35px #00cfff22}
-.core:before,.core:after{content:"";position:absolute;border:1px solid #28dfff;border-radius:50%}
-.core:before{inset:35px;border-style:dashed;animation:spin 12s linear infinite}
-.core:after{inset:75px;box-shadow:0 0 35px #00d9ff66}
-.arc{position:absolute;inset:-25px;border:2px solid transparent;border-top-color:#63eaff;border-bottom-color:#63eaff;border-radius:50%;animation:spin 8s linear infinite}
-.center{text-align:center;z-index:2}.pulse{font-size:42px;letter-spacing:5px;text-shadow:0 0 15px #20dcff}.online{font-size:11px;letter-spacing:4px;margin-top:10px}
-.panel{position:absolute;background:#031016bb;border:1px solid #20dfff88;box-shadow:0 0 18px #00cfff22;backdrop-filter:blur(6px);padding:16px}
-.left{left:4%;top:12%;width:210px}.right{right:4%;top:14%;width:260px}.bottom{left:4%;bottom:7%;width:340px}
-h3{font-size:12px;letter-spacing:3px;margin:0 0 12px;color:#fff}
-.stat{display:flex;justify-content:space-between;font-size:11px;margin:9px 0}.ok{color:#70ffbf}
-.tasks{display:flex;gap:9px;margin:9px 0;font-size:12px}.tasks input{accent-color:#28dfff}
-input[type=text]{width:100%;background:#06171d;border:1px solid #20dfff55;color:#baf5ff;padding:8px;margin-top:8px;outline:none}
-button{margin-top:8px;background:#06232c;color:#8eeaff;border:1px solid #20dfff88;padding:7px 12px;cursor:pointer}
-button:hover{background:#0b3a48}
-.voice{display:flex;gap:8px;align-items:center}.voice button{flex:1}
-#micBtn.listening{box-shadow:0 0 16px #20dfff;animation:listenPulse 1s ease-in-out infinite}
-#voiceStatus{font-size:10px;letter-spacing:2px;margin-top:8px;min-height:12px}
-.clock{position:absolute;top:4%;left:50%;transform:translateX(-50%);font-size:13px;letter-spacing:3px}
-.corner{position:absolute;font-size:9px;color:#48c9df66}.c1{left:2%;top:3%}.c2{right:2%;bottom:3%}
-@keyframes spin{to{transform:rotate(360deg)}} @keyframes listenPulse{50%{opacity:.55}}
-@media(max-width:700px){.core{width:260px;height:260px}.left{left:2%;top:10%;width:160px}.right{right:2%;top:auto;bottom:5%;width:210px}.bottom{display:none}}
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    linear-gradient(rgba(0,255,255,.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,255,.035) 1px, transparent 1px),
+    #020609;
+  background-size: 35px 35px;
+  color: #00ffff;
+  font-family: Arial, sans-serif;
+  overflow-x: hidden;
+}
+
+.hud {
+  width: 100%;
+  max-width: 1100px;
+  margin: auto;
+  padding: 20px;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(0,255,255,.35);
+  padding-bottom: 15px;
+  margin-bottom: 20px;
+}
+
+.logo {
+  font-size: 28px;
+  font-weight: bold;
+  letter-spacing: 5px;
+  text-shadow: 0 0 15px #00ffff;
+}
+
+.clock {
+  font-size: 14px;
+  color: #8fffff;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 20px;
+}
+
+.panel {
+  border: 1px solid rgba(0,255,255,.35);
+  background: rgba(0,20,25,.65);
+  box-shadow: 0 0 20px rgba(0,255,255,.08);
+  padding: 18px;
+  border-radius: 8px;
+}
+
+.panel h2 {
+  margin-top: 0;
+  font-size: 14px;
+  letter-spacing: 3px;
+  color: #8fffff;
+}
+
+.core-area {
+  text-align: center;
+  padding: 20px;
+}
+
+.core {
+  width: 190px;
+  height: 190px;
+  margin: 20px auto;
+  border: 3px solid #00ffff;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  box-shadow:
+    0 0 20px #00ffff,
+    inset 0 0 30px rgba(0,255,255,.4);
+  animation: pulse 2s infinite;
+}
+
+.core::before,
+.core::after {
+  content: "";
+  position: absolute;
+  border: 1px solid #00ffff;
+  border-radius: 50%;
+}
+
+.core::before {
+  width: 140%;
+  height: 140%;
+  animation: spin 8s linear infinite;
+}
+
+.core::after {
+  width: 75%;
+  height: 75%;
+  animation: spin 4s linear infinite reverse;
+}
+
+.core-text {
+  z-index: 2;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+@keyframes pulse {
+  50% {
+    box-shadow:
+      0 0 45px #00ffff,
+      inset 0 0 40px rgba(0,255,255,.5);
+  }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.status {
+  display: grid;
+  gap: 10px;
+}
+
+.status div {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px;
+  background: rgba(0,255,255,.04);
+}
+
+.online {
+  color: #00ff88;
+}
+
+.command-box {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+input {
+  flex: 1;
+  background: #01090c;
+  border: 1px solid rgba(0,255,255,.4);
+  color: #00ffff;
+  padding: 12px;
+  outline: none;
+  border-radius: 4px;
+}
+
+input:focus {
+  border-color: #00ffff;
+  box-shadow: 0 0 10px rgba(0,255,255,.25);
+}
+
+button {
+  background: rgba(0,255,255,.08);
+  border: 1px solid #00ffff;
+  color: #00ffff;
+  padding: 10px 14px;
+  cursor: pointer;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+button:hover {
+  background: rgba(0,255,255,.2);
+  box-shadow: 0 0 12px rgba(0,255,255,.3);
+}
+
+.feed {
+  height: 300px;
+  overflow-y: auto;
+  padding: 10px;
+  background: rgba(0,0,0,.35);
+  border: 1px solid rgba(0,255,255,.15);
+  margin-top: 10px;
+}
+
+.message {
+  margin-bottom: 12px;
+  padding: 10px;
+  border-left: 2px solid #00ffff;
+  background: rgba(0,255,255,.035);
+}
+
+.user {
+  color: #ffffff;
+  border-left-color: #ffffff;
+}
+
+.jarvis {
+  color: #00ffff;
+}
+
+.tasks {
+  margin-top: 20px;
+}
+
+.task-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.task {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px;
+  border-bottom: 1px solid rgba(0,255,255,.12);
+}
+
+.task span {
+  flex: 1;
+}
+
+.controls {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.small {
+  font-size: 11px;
+  color: #70aaaa;
+}
+
+@media (max-width: 750px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .core {
+    width: 150px;
+    height: 150px;
+  }
+
+  header {
+    flex-direction: column;
+    gap: 10px;
+  }
+}
 </style>
 </head>
+
 <body>
+
 <div class="hud">
-<div class="clock" id="clock"></div>
-<div class="corner c1">JARVIS // WEARABLE AI INTERFACE</div><div class="corner c2">PROTOTYPE BUILD 02 // VOICE</div>
 
-<section class="panel left"><h3>SYSTEM STATUS</h3>
-<div class="stat"><span>AI CORE</span><span class="ok">ONLINE</span></div>
-<div class="stat"><span>AUDIO LINK</span><span class="ok" id="audioStatus">READY</span></div>
-<div class="stat"><span>OPTICAL LINK</span><span class="ok">READY</span></div>
-<div class="stat"><span>POWER</span><span>100%</span></div>
-</section>
+<header>
+  <div class="logo">JARVIS</div>
+  <div class="clock" id="clock">--:--:-- // PH</div>
+</header>
 
-<div class="core"><div class="arc"></div><div class="center"><div class="pulse">JARVIS</div><div class="online" id="coreStatus">SYSTEM ONLINE</div></div></div>
+<div class="grid">
 
-<section class="panel right"><h3>TASKS</h3><div id="taskList"></div>
-<input id="taskInput" type="text" placeholder="Add a task..."><button onclick="addTask()">ADD</button>
-<div class="voice">
-<button id="micBtn" onclick="startListening()">🎤 LISTEN</button>
+<!-- LEFT SIDE -->
+<div>
+
+<div class="panel core-area">
+  <h2>AI CORE</h2>
+
+  <div class="core">
+    <div class="core-text">ONLINE</div>
+  </div>
+
+  <div class="small">
+    PRIMARY AI SYSTEM
+  </div>
 </div>
-<div id="voiceStatus"></div>
-</section>
 
-<section class="panel bottom"><h3>ASSISTANT FEED</h3>
-<div id="feed" style="font-size:11px;line-height:1.6">Awaiting command...<br><span class="ok">All primary systems nominal.</span></div>
-</section>
+<div class="panel">
+  <h2>SYSTEM STATUS</h2>
+
+  <div class="status">
+    <div>
+      <span>AI CORE</span>
+      <span class="online">ONLINE</span>
+    </div>
+
+    <div>
+      <span>AUDIO LINK</span>
+      <span class="online">READY</span>
+    </div>
+
+    <div>
+      <span>OPTICAL LINK</span>
+      <span class="online">READY</span>
+    </div>
+
+    <div>
+      <span>POWER</span>
+      <span class="online">100%</span>
+    </div>
+  </div>
 </div>
+
+</div>
+
+<!-- RIGHT SIDE -->
+<div>
+
+<div class="panel">
+  <h2>JARVIS COMMAND</h2>
+
+  <div class="command-box">
+    <input
+      id="commandInput"
+      type="text"
+      placeholder="Enter command..."
+    >
+
+    <button onclick="sendCommand()">ASK JARVIS</button>
+  </div>
+
+  <div class="controls">
+    <button onclick="startListening()">🎙 LISTEN</button>
+    <button onclick="clearFeed()">CLEAR FEED</button>
+  </div>
+
+  <div class="feed" id="feed">
+    <div class="message jarvis">
+      <strong>JARVIS:</strong><br>
+      Awaiting command...
+    </div>
+
+    <div class="message jarvis">
+      <strong>JARVIS:</strong><br>
+      All primary systems nominal.
+    </div>
+  </div>
+</div>
+
+<div class="panel tasks">
+  <h2>TASK SYSTEM</h2>
+
+  <div class="task-row">
+    <input
+      id="taskInput"
+      type="text"
+      placeholder="Add a task..."
+    >
+
+    <button onclick="addTask()">ADD</button>
+  </div>
+
+  <div id="taskList"></div>
+</div>
+
+</div>
+
+</div>
+</div>
+
 <script>
-const tasks=JSON.parse(localStorage.getItem("jarvisTasks")||'["Build glasses prototype","Test audio input","Design HUD"]');
 
-function render(){
-  taskList.innerHTML="";
-  tasks.forEach((t,i)=>{
-    let r=document.createElement("div");
-    r.className="tasks";
-    r.innerHTML=`<input type="checkbox" onchange="toggle(${i},this.checked)"><span>${t}</span>`;
-    taskList.appendChild(r);
-  });
+/* =========================
+   JARVIS BACKEND
+========================= */
+
+const JARVIS_API_URL =
+"https://script.google.com/macros/s/AKfycbwh0NSaJJaqtTzOpsDWGOV1hevaQTf8hSRfYTohgKfn_Fah3L79ITD5T4mAn0r3vaHo3A/exec";
+
+
+/* =========================
+   CLOCK
+========================= */
+
+function updateClock() {
+  const now = new Date();
+
+  document.getElementById("clock").textContent =
+    now.toLocaleTimeString("en-PH", {
+      hour12: false,
+      timeZone: "Asia/Manila"
+    }) + " // PH";
 }
 
-function addTask(){
-  let v=taskInput.value.trim();
-  if(v){tasks.push(v);taskInput.value="";save()}
-}
-async function sendToJarvis(){
-  let message = taskInput.value.trim();
+setInterval(updateClock, 1000);
+updateClock();
 
-  if(!message) return;
 
-  taskInput.value = "";
+/* =========================
+   FEED
+========================= */
 
-  const reply = await askJarvis(message);
+function addMessage(text, type) {
 
-  console.log("JARVIS:", reply);
-}
-function toggle(i,c){if(c){tasks.splice(i,1);save()}}
-function save(){localStorage.setItem("jarvisTasks",JSON.stringify(tasks));render()}
-  taskInput.addEventListener("keydown", async e => {
-  if (e.key !== "Enter") return;
+  const feed = document.getElementById("feed");
 
-  const message = taskInput.value.trim();
-  if (!message) return;
+  const message = document.createElement("div");
 
-  taskInput.value = "";
+  message.className =
+    "message " + type;
 
-  addFeed(message);
+  message.innerHTML =
+    "<strong>" +
+    (type === "user" ? "YOU:" : "JARVIS:") +
+    "</strong><br>" +
+    escapeHTML(text);
 
-  const reply = await askJarvis(message);
+  feed.appendChild(message);
 
-  addFeed(reply);
-});
-  if (e.key !== "Enter") return;
-
-  const message = taskInput.value.trim();
-  if (!message) return;
-
-  taskInput.value = "";
-
-  addFeed(message);
-
-  const reply = await askJarvis(message);
-
-  addFeed(reply);
-});
-
-const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
-let recognition=null;
-let listening=false;
-
-function setVoiceStatus(message,active=false){
-  voiceStatus.textContent=message;
-  micBtn.classList.toggle("listening",active);
-  audioStatus.textContent=active?"LISTENING":"READY";
-  coreStatus.textContent=active?"LISTENING...":"SYSTEM ONLINE";
+  feed.scrollTop = feed.scrollHeight;
 }
 
-function addFeed(text){
-  feed.innerHTML=`<span style="color:#fff">YOU:</span> ${text}<br><span class="ok">Voice input received.</span>`;
+
+function clearFeed() {
+
+  document.getElementById("feed").innerHTML = "";
+
 }
 
-function startListening(){
-  if(!SpeechRecognition){
-    setVoiceStatus("VOICE INPUT NOT SUPPORTED");
-    addFeed("Your browser does not support speech recognition.");
-    return;
-  }
 
-  if(listening){
-    recognition.stop();
-    return;
-  }
-
-  recognition=new SpeechRecognition();
-  recognition.lang="en-US";
-  recognition.interimResults=false;
-  recognition.continuous=false;
-
-  recognition.onstart=()=>{
-    listening=true;
-    setVoiceStatus("LISTENING...",true);
-  };
-
-  recognition.onresult=async (event)=>{
-    const transcript=event.results[0][0].transcript.trim();
-
-    taskInput.value=transcript;
-    addFeed(transcript);
-    setVoiceStatus("THINKING...");
-
-    const reply=await askJarvis(transcript);
-
-    addFeed(reply);
-    setVoiceStatus("COMMAND RECEIVED");
-};
-
-  recognition.onerror=(event)=>{
-    listening=false;
-    let message="VOICE ERROR";
-    if(event.error==="not-allowed") message="MICROPHONE PERMISSION DENIED";
-    if(event.error==="no-speech") message="NO SPEECH DETECTED";
-    setVoiceStatus(message);
-    audioStatus.textContent="READY";
-    coreStatus.textContent="SYSTEM ONLINE";
-  };
-
-  recognition.onend=()=>{
-    listening=false;
-    if(voiceStatus.textContent==="LISTENING...") setVoiceStatus("READY");
-  };
-
-  try{recognition.start()}
-  catch(e){setVoiceStatus("VOICE START FAILED")}
-}
-
-function tick(){clock.textContent=new Date().toLocaleTimeString([], {hour12:false})+"  //  PH";}
-setInterval(tick,1000);tick();render();const JARVIS_API_URL = "https://script.google.com/macros/s/AKfycbwJYzpcWBZviQPplS3fd-NKCXMhNfTTnzimDsz3QoZCA6Ku4b6Mm4XuFKIFA5Dk2_hysw/exec";
-  async function askJarvis(message) {
-  try {
-    const response = await fetch(JARVIS_API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "text/plain;charset=utf-8"
-      },
-      body: JSON.stringify({
-        message: message
-      })
-    });
-
-    const data = await response.json();
-
-    return data.reply || "JARVIS received no response.";
-  } catch (error) {
-    console.error(error);
-    return "Connection to JARVIS failed.";
-  }
-  }const JARVIS_API_URL = "https://script.google.com/macros/s/AKfycbwlvr4uUkLgo5mfcY5nwgWd4eJq8Io5jI-BCxOF4lqaKBqYxdJN5h2Z0R6WnIrBJDz5/exec";
+/* =========================
+   ASK JARVIS
+========================= */
 
 async function askJarvis(message) {
-  try {
-    const response = await fetch(JARVIS_API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "text/plain;charset=utf-8"
-      },
-      body: JSON.stringify({
-        message: message
-      })
-    });
 
-    const data = await response.json();
-    return data.reply || "JARVIS received no response.";
-
-  } catch (error) {
-    console.error(error);
-    return "Connection to JARVIS failed.";
-  }
-    }async function askJarvis(message) {
   try {
-    const response = await fetch(JARVIS_API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "text/plain;charset=utf-8"
-      },
-      body: JSON.stringify({
-        message: message
-      })
-    });
+
+    const response = await fetch(
+      JARVIS_API_URL,
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type":
+            "text/plain;charset=utf-8"
+        },
+
+        body: JSON.stringify({
+          message: message
+        })
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        "HTTP " + response.status
+      );
+    }
 
     const data = await response.json();
 
-    return data.reply || "JARVIS received no response.";
+    return data.reply ||
+      "JARVIS received no response.";
 
   } catch (error) {
-    console.error(error);
+
+    console.error(
+      "JARVIS connection error:",
+      error
+    );
+
     return "Connection to JARVIS failed.";
+
   }
 }
+
+
+/* =========================
+   SEND COMMAND
+========================= */
+
+async function sendCommand() {
+
+  const input =
+    document.getElementById("commandInput");
+
+  const message =
+    input.value.trim();
+
+  if (!message) return;
+
+  addMessage(message, "user");
+
+  input.value = "";
+
+  addMessage(
+    "Processing...",
+    "jarvis"
+  );
+
+  const feed =
+    document.getElementById("feed");
+
+  feed.removeChild(
+    feed.lastElementChild
+  );
+
+  const reply =
+    await askJarvis(message);
+
+  addMessage(
+    reply,
+    "jarvis"
+  );
+}
+
+
+/* ENTER = SEND COMMAND */
+
+document
+  .getElementById("commandInput")
+  .addEventListener(
+    "keydown",
+    function(event) {
+
+      if (event.key === "Enter") {
+        sendCommand();
+      }
+
+    }
+  );
+
+
+/* =========================
+   VOICE INPUT
+========================= */
+
+function startListening() {
+
+  const SpeechRecognition =
+    window.SpeechRecognition ||
+    window.webkitSpeechRecognition;
+
+  if (!SpeechRecognition) {
+
+    addMessage(
+      "Voice recognition is not supported by this browser.",
+      "jarvis"
+    );
+
+    return;
+  }
+
+  const recognition =
+    new SpeechRecognition();
+
+  recognition.lang = "en-US";
+
+  recognition.interimResults = false;
+
+  recognition.continuous = false;
+
+  recognition.start();
+
+  addMessage(
+    "Listening...",
+    "jarvis"
+  );
+
+  recognition.onresult =
+    function(event) {
+
+      const transcript =
+        event.results[0][0].transcript;
+
+      document.getElementById(
+        "commandInput"
+      ).value = transcript;
+
+      sendCommand();
+    };
+
+  recognition.onerror =
+    function(event) {
+
+      addMessage(
+        "Voice input error: " +
+        event.error,
+        "jarvis"
+      );
+
+    };
+}
+
+
+/* =========================
+   TASK SYSTEM
+========================= */
+
+let tasks =
+  JSON.parse(
+    localStorage.getItem("jarvisTasks") ||
+    "[]"
+  );
+
+
+function saveTasks() {
+
+  localStorage.setItem(
+    "jarvisTasks",
+    JSON.stringify(tasks)
+  );
+
+}
+
+
+function renderTasks() {
+
+  const list =
+    document.getElementById("taskList");
+
+  list.innerHTML = "";
+
+  tasks.forEach(
+    function(task, index) {
+
+      const row =
+        document.createElement("div");
+
+      row.className = "task";
+
+      row.innerHTML = `
+        <input
+          type="checkbox"
+          ${task.done ? "checked" : ""}
+          onchange="toggleTask(${index})"
+        >
+
+        <span style="${
+          task.done
+            ? "text-decoration:line-through;opacity:.5"
+            : ""
+        }">
+          ${escapeHTML(task.text)}
+        </span>
+
+        <button onclick="deleteTask(${index})">
+          ×
+        </button>
+      `;
+
+      list.appendChild(row);
+
+    }
+  );
+
+}
+
+
+function addTask() {
+
+  const input =
+    document.getElementById("taskInput");
+
+  const text =
+    input.value.trim();
+
+  if (!text) return;
+
+  tasks.push({
+    text: text,
+    done: false
+  });
+
+  input.value = "";
+
+  saveTasks();
+
+  renderTasks();
+
+}
+
+
+function toggleTask(index) {
+
+  tasks[index].done =
+    !tasks[index].done;
+
+  saveTasks();
+
+  renderTasks();
+
+}
+
+
+function deleteTask(index) {
+
+  tasks.splice(index, 1);
+
+  saveTasks();
+
+  renderTasks();
+
+}
+
+
+/* ENTER = ADD TASK */
+
+document
+  .getElementById("taskInput")
+  .addEventListener(
+    "keydown",
+    function(event) {
+
+      if (event.key === "Enter") {
+        addTask();
+      }
+
+    }
+  );
+
+
+/* =========================
+   SECURITY
+========================= */
+
+function escapeHTML(text) {
+
+  const div =
+    document.createElement("div");
+
+  div.textContent = text;
+
+  return div.innerHTML;
+
+}
+
+
+/* INITIALIZE */
+
+renderTasks();
+
 </script>
+
 </body>
 </html>
