@@ -126,12 +126,18 @@ function startListening(){
     setVoiceStatus("LISTENING...",true);
   };
 
-  recognition.onresult=(event)=>{
+  recognition.onresult=async (event)=>{
     const transcript=event.results[0][0].transcript.trim();
+
     taskInput.value=transcript;
     addFeed(transcript);
+    setVoiceStatus("THINKING...");
+
+    const reply=await askJarvis(transcript);
+
+    addFeed(reply);
     setVoiceStatus("COMMAND RECEIVED");
-  };
+};
 
   recognition.onerror=(event)=>{
     listening=false;
