@@ -179,7 +179,48 @@ setInterval(tick,1000);tick();render();const JARVIS_API_URL = "https://script.go
     console.error(error);
     return "Connection to JARVIS failed.";
   }
+  }const JARVIS_API_URL = "https://script.google.com/macros/s/AKfycbwlvr4uUkLgo5mfcY5nwgWd4eJq8Io5jI-BCxOF4lqaKBqYxdJN5h2Z0R6WnIrBJDz5/exec";
+
+async function askJarvis(message) {
+  try {
+    const response = await fetch(JARVIS_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8"
+      },
+      body: JSON.stringify({
+        message: message
+      })
+    });
+
+    const data = await response.json();
+    return data.reply || "JARVIS received no response.";
+
+  } catch (error) {
+    console.error(error);
+    return "Connection to JARVIS failed.";
   }
+    }async function askJarvis(message) {
+  try {
+    const response = await fetch(JARVIS_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8"
+      },
+      body: JSON.stringify({
+        message: message
+      })
+    });
+
+    const data = await response.json();
+
+    return data.reply || "JARVIS received no response.";
+
+  } catch (error) {
+    console.error(error);
+    return "Connection to JARVIS failed.";
+  }
+}
 </script>
 </body>
 </html>
